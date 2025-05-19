@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <unordered_set>
-#include "fileObject.h"
+#include "../fileObject/fileObject.h"
 #include <string>
 #include <filesystem>
 
@@ -24,12 +24,12 @@ class CommitObject : public FileObject {
         std::string message;
         std::unordered_set<fs::path> filesToCommit;
     
-        CommitObject(const std::string& branch, fs::path& cwd);
-    
-        void createCommitObject(const std::vector<std::string>& inputPaths, std::string &parentHash, std::string &author, std::string &description, fs::path &projectRootfolder);
-    
+        void commit(std::string);
+        void commit(std::vector<std::string>);
+
+        void createCommitObject(const std::vector<std::string>& inputPaths, std::string &parentHash, std::string &author, fs::path &projectRootfolder);
+        std::string getParentCommitHash(const std::string& commitHash, const fs::path& projectRootfolder);
     private:
-    
         void collectFilesToCommit(const std::vector<std::string>& inputs);
         void parseCommitFile(std::ifstream &inFile);
 };

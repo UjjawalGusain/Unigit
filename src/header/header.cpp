@@ -3,9 +3,9 @@
 #include <vector>
 #include <algorithm>
 #include <fstream>
-#include "compress.h"
-#include "hasher.h"
-#include "header.h"
+#include "../compression/compress.h"
+#include "../hashing/hasher.h"
+#include "../header/header.h"
 namespace fs = std::filesystem;
 
 // File would be like: <fileType> <fileSize> \0 <content>

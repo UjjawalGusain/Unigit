@@ -7,8 +7,11 @@ SRC = src/multithreading/multithreader.cpp \
       src/hashing/hasher.cpp \
 	  thirdparty/sha256/src/sha256.c \
 	  src/blobObject/blobObject.cpp \
+	  src/fileObject/fileObject.cpp \
 	  src/header/header.cpp \
 	  src/utils/utils.cpp \
+	  src/treeObject/treeObject.cpp \
+	  src/commitObject/commitObject.cpp \
 	  main.cpp
 
 OUT = compress.exe

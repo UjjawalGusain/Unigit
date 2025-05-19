@@ -9,7 +9,7 @@ namespace fs = std::filesystem;
 
 class FileObject {
 public:
-    FileObject::FileObject() = default;
+    FileObject() = default;
     FileObject(const fs::path& root, const std::string& source, int compressionLevel = 6);
 
     // Implements generic write, getHash, and decompress behavior.

@@ -1,7 +1,7 @@
 #ifndef BLOBOBJECT_H
 #define BLOBOBJECT_H
 
-#include "fileObject.h"
+#include "../fileObject/fileObject.h"
 
 #include <string>
 #include <filesystem>
