@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Ithirdparty/zlib/include -Ithirdparty/bs_threader/include -Ithirdparty/sha256/include
+CXXFLAGS = -Ithirdparty/zlib/include -Ithirdparty/bs_threader/include -Ithirdparty/sha256/include -Ithirdparty/nlohmann/include
 LDFLAGS = -Lthirdparty/zlib/lib -lz -Lthirdparty/sha256/lib
 
 SRC = src/multithreading/multithreader.cpp \
