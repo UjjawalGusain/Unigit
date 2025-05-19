@@ -14,7 +14,7 @@ SRC = src/multithreading/multithreader.cpp \
 	  src/commitObject/commitObject.cpp \
 	  main.cpp
 
-OUT = compress.exe
+OUT = unigit.exe
 
 compress: $(SRC)
 	$(CXX) $(CXXFLAGS) $(SRC) $(LDFLAGS) -o $(OUT)

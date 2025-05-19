@@ -82,10 +82,14 @@ std::string sha1FromFile(const std::filesystem::path &filePath) {
     return hasher.finish();
 }
 
+
 void updateHEAD(const std::string& newCommitHash, fs::path projectRootfolder) {
-    std::ofstream headFile(projectRootfolder / ".unigit" / "HEAD" , std::ios::trunc);
+    fs::path headPath = projectRootfolder / ".unigit" / "HEAD";
+
+    // Create and write to HEAD (overwrites if exists)
+    std::ofstream headFile(headPath, std::ios::trunc);
     if (!headFile.is_open()) {
-        throw std::runtime_error("Failed to open .unigit/HEAD for writing.");
+        throw std::runtime_error("Failed to open or create .unigit/HEAD for writing.");
     }
 
     headFile << newCommitHash;
@@ -93,7 +97,14 @@ void updateHEAD(const std::string& newCommitHash, fs::path projectRootfolder) {
 }
 
 std::string getCurrentCommitHash(fs::path projectRootfolder) {
-    std::ifstream headFile(projectRootfolder / ".unigit" / "HEAD" , std::ios::trunc);
+    fs::path headPath = projectRootfolder / ".unigit" / "HEAD";
+    std::cout << headPath << std::endl;
+
+    if (!fs::exists(headPath)) {
+        return "";
+    }
+
+    std::ifstream headFile(headPath);
     if (!headFile.is_open()) {
         throw std::runtime_error("Unable to open .unigit/HEAD");
     }
@@ -102,9 +113,17 @@ std::string getCurrentCommitHash(fs::path projectRootfolder) {
     std::getline(headFile, hash);
     headFile.close();
 
-    if (hash.empty()) {
-        throw std::runtime_error("HEAD is empty");
-    }
-
     return hash;
+}
+
+
+fs::path findProjectRoot() {
+    fs::path current = fs::current_path();
+    while (!fs::exists(current / ".unigit")) {
+        if (!current.has_parent_path()) {
+            throw std::runtime_error("Not inside a UniGit repository");
+        }
+        current = current.parent_path();
+    }
+    return current;
 }

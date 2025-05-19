@@ -177,6 +177,8 @@ void CommitObject::createCommitObject(const std::vector<std::string>& inputPaths
     std::cout << "New tree hash (commit): " << newCommitHash << std::endl;
     updateHEAD(newCommitHash, projectRootfolder);
 }
+
+
 std::string CommitObject::getParentCommitHash(const std::string& commitHash, const fs::path& projectRootfolder) {
     std::cout << "[DEBUG] Commit hash: " << commitHash << std::endl;
 

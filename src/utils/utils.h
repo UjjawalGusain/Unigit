@@ -8,4 +8,6 @@ std::string readDecompressedObject(const fs::path &objectPath);
 std::string sha1FromFile(const fs::path &filePath);
 fs::path findUnigitRoot();
 void updateHEAD(const std::string& newCommitHash, fs::path projectRootfolder);
+std::string getCurrentCommitHash(fs::path projectRootfolder);
+fs::path findProjectRoot();
 #endif
