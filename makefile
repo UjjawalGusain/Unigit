@@ -12,6 +12,7 @@ SRC = src/multithreading/multithreader.cpp \
 	  src/utils/utils.cpp \
 	  src/treeObject/treeObject.cpp \
 	  src/commitObject/commitObject.cpp \
+	  src/addObject/addCommand.cpp \
 	  main.cpp
 
 OUT = unigit.exe

@@ -20,6 +20,7 @@ std::string sha1FromFile(const std::filesystem::path &filePath);
 #include <iostream>
 #include "../compression/compress.h"
 #include "../hashing/hasher.h"
+#include "json.hpp"
 #include <filesystem>
 #include <stdexcept>
 namespace fs = std::filesystem;
@@ -34,6 +35,18 @@ fs::path findUnigitRoot() {
     }
     throw std::runtime_error("Not a unigit repository (or any of the parent directories): .unigit");
 }
+
+void eraseIfExists(nlohmann::json& arr, const std::string& val) {
+    if (!arr.is_array()) return;
+
+    for (size_t i = 0; i < arr.size(); ++i) {
+        if (arr[i] == val) {
+            arr.erase(i);
+            return;
+        }
+    }
+}
+
 
 // Decompress a stored object file and return its full contents (including header and body)
 std::string readDecompressedObject(const std::filesystem::path &objectPath) {
@@ -59,7 +72,6 @@ std::string readDecompressedObject(const std::filesystem::path &objectPath) {
     return decompressed.str();
 }
 
-// Compute SHA1 hash of a file using the existing Hasher class
 std::string sha1FromFile(const std::filesystem::path &filePath) {
     std::ifstream file(filePath, std::ios::binary);
     if (!file.is_open()) {
@@ -80,6 +92,34 @@ std::string sha1FromFile(const std::filesystem::path &filePath) {
     }
 
     return hasher.finish();
+}
+
+std::string sha1FromString(const std::string& input) {
+    Hasher hasher;
+    hasher.begin();
+
+    size_t chunkSize = 4096;
+    size_t offset = 0;
+    while (offset < input.size()) {
+        size_t len = std::min(chunkSize, input.size() - offset);
+        hasher.addChunk(reinterpret_cast<const uint8_t*>(input.data() + offset), len);
+        offset += len;
+    }
+
+    return hasher.finish();
+}
+
+std::string readFile(const fs::path &filePath) {
+    std::cout << "Reached readFile function" << std::endl;
+    std::ifstream file(filePath, std::ios::binary); 
+    if (!file) {
+        throw std::runtime_error("Failed to open file: " + filePath.string());
+    }
+
+    std::ostringstream ss;
+    ss << file.rdbuf();  
+    std::cout << "Reached out of readFile function" << std::endl;
+    return ss.str();  
 }
 
 

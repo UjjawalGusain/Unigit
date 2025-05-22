@@ -31,9 +31,12 @@ void FileObject::compressAndHash() {
     std::ifstream input(sourcePath, std::ios::binary);
     std::ofstream output(tempOutputPath, std::ios::binary);
 
-    if (!input || !output) {
-        std::cerr << "Error opening source or destination file.\n";
-        return;
+    if (!input) {
+        throw std::runtime_error("Cannot open input file: " + sourcePath);
+    }
+
+    if (!output) {
+        throw std::runtime_error("Cannot open output file: " + tempOutputPath);
     }
 
     Compressor compressor(CHUNK, LEVEL);
@@ -117,6 +120,11 @@ void FileObject::moveToObjectStore() {
     fs::path objectDir = unigitDir / "object";
     if (!fs::exists(objectDir)) {
         fs::create_directory(objectDir);
+    }
+
+    if (hash.size() < 3) {
+        std::cerr << "Invalid hash: " << hash << "\n";
+        return;
     }
 
     std::string firstTwoChar = hash.substr(0, 2);

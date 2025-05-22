@@ -65,6 +65,11 @@
         "future": "cpp",
         "mutex": "cpp",
         "unordered_set": "cpp",
-        "set": "cpp"
+        "set": "cpp",
+        "any": "cpp",
+        "forward_list": "cpp",
+        "map": "cpp",
+        "ranges": "cpp",
+        "valarray": "cpp"
     }
 }

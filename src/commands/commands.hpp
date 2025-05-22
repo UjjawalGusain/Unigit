@@ -1,24 +1,22 @@
 #include <iostream>
 #include <vector>
 #include <filesystem>
+#include <fstream>
 #include <string>
 #include <stdexcept>
 #include <tchar.h>
-#include <windows.h> 
+#include <unordered_set>
 #include "../commitObject/commitObject.h"
 #include "../utils/utils.h"
 #include "json.hpp"
-
-
+#include "../addObject/addCommand.hpp"
 namespace fs = std::filesystem;
 
 
 void initRepo() {
     std::string author, email;
 
-    TCHAR buffer[MAX_PATH];
-    GetCurrentDirectory(MAX_PATH, buffer);
-    fs::path projectPath = fs::path(buffer);
+    fs::path projectPath = fs::current_path();
     std::string projectName = projectPath.filename().string();
 
     fs::path unigitDir = projectPath / ".unigit";
@@ -132,11 +130,7 @@ void printStatus() {
     }
 }
 
-#include <iostream>
-#include <fstream>
-#include <filesystem>
 
-namespace fs = std::filesystem;
 
 void printInfo() {
     fs::path projectRoot = findProjectRoot();
@@ -171,6 +165,52 @@ void printInfo() {
     }
 }
 
+void add(std::vector<std::string> &filenames) {
+    std::cout << "Reached add function" << std::endl;
+    fs::path projectRootFolder = findProjectRoot();
+    fs::path watcherPath = projectRootFolder / ".unigit" / "WATCHER";
+    nlohmann::json watcher;
+
+    if (fs::exists(watcherPath)) {
+        std::ifstream in(watcherPath);
+        in >> watcher;
+    } else {
+        watcher = {
+            {"overloaded", false},
+            {"modified",   nlohmann::json::array()},
+            {"new",        nlohmann::json::array()},
+            {"removed",    nlohmann::json::array()},
+            {"added",      nlohmann::json::object()}
+        };
+    }
+
+    AddCommand addCmd(projectRootFolder, 7);
+
+    for (const auto& filename : filenames) {
+        fs::path p = fs::path(filename).lexically_normal();
+        fs::path fullPath = projectRootFolder / p;
+
+        if (!fs::exists(fullPath)) {
+            std::cerr << "Warning: path does not exist: " << fullPath << "\n";
+            continue;
+        }
+
+        if (fs::is_regular_file(fullPath)) {
+            std::string fileHash = addCmd.hashAndCompressFile(fullPath);
+            watcher["added"][p.generic_string()] = fileHash;
+            eraseIfExists(watcher["modified"], p.generic_string());
+            eraseIfExists(watcher["new"], p.generic_string());
+            eraseIfExists(watcher["removed"], p.generic_string());
+
+        } else if (fs::is_directory(fullPath)) {
+            addCmd.addBlobsRecursively(fullPath, projectRootFolder, watcher);
+        }
+    }
+
+    std::ofstream out(watcherPath);
+    out << watcher.dump(4);
+}
+
 
 void runCommand(int argc, char* argv[]) {
     if (argc < 2) {
@@ -179,7 +219,7 @@ void runCommand(int argc, char* argv[]) {
     }
 
     std::string command = argv[1];
-    std::vector<std::string> args(argv + 1, argv + argc);
+    std::vector<std::string> args(argv + 2, argv + argc);
 
     if (command == "init") {
         initRepo();
@@ -189,6 +229,12 @@ void runCommand(int argc, char* argv[]) {
         printStatus();
     } else if (command == "info") {
         printInfo();
+    } else if (command == "add") {
+        if (args.empty()) {
+            std::cerr << "No files specified to add." << std::endl;
+            return;
+        }
+        add(args);  
     } else {
         std::cerr << "Unknown command: " << command << std::endl;
     }

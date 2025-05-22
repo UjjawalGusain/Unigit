@@ -72,7 +72,7 @@ string view
 single character or C-style string with null-terminated character
 starts_with() with different types of Prefix:
 
-
+a
 bool starts_with(std::basic_string_view<Char T, Traits> x) const noexcept;
 bool starts_with(CharT x) const noexcept;
 bool starts_with(const CharT *x) const;
@@ -86,7 +86,7 @@ Return Value: It returns the boolean true or false indication the following:
 
 True: If string starts with the prefix.
 False: If string does not start with the prefix.
-Program 1:
+Program 1: a
 
 Below program to demonstrates the concept of starts_with() in C++:
 

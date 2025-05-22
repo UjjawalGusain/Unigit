@@ -54,12 +54,6 @@ std::string TreeObject::recursiveTraverse(
         // Only include entries from filesToCommit that are direct children of currentPath
         std::set<fs::path> uniqueChildren;
 
-        // for (const auto &f : filesToCommit) {
-        //     if (fs::relative(f, currentPath).empty()) continue;
-        //     fs::path relative = fs::relative(f, currentPath);
-        //     fs::path firstComponent = *relative.begin(); // first directory or file
-        //     uniqueChildren.insert(currentPath / firstComponent);
-        // }
         for (const auto &f : filesToCommit) {
             if (fs::relative(f, currentPath).empty()) continue;
 
