@@ -138,7 +138,7 @@ void updateHEAD(const std::string& newCommitHash, fs::path projectRootfolder) {
 
 std::string getCurrentCommitHash(fs::path projectRootfolder) {
     fs::path headPath = projectRootfolder / ".unigit" / "HEAD";
-    std::cout << headPath << std::endl;
+    // std::cout << headPath << std::endl;
 
     if (!fs::exists(headPath)) {
         return "";

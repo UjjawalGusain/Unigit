@@ -11,6 +11,8 @@ class FileObject {
 public:
     FileObject() = default;
     FileObject(const fs::path& root, const std::string& source, int compressionLevel = 6);
+    FileObject(const fs::path& root, const std::string& content, const std::string& objectType, int compressionLevel = 6);
+
 
     // Implements generic write, getHash, and decompress behavior.
     virtual void write();
@@ -18,17 +20,22 @@ public:
     virtual void decompress(const std::string& hash, const fs::path& outputPath);
 
     // Pure virtual method forcing subclass to supply the object type (e.g., "blob", "tree")
-    virtual std::string getType() const = 0; 
+    virtual std::string getType() const {
+        return type;
+    }
 
     virtual ~FileObject() = default;
+    
 
 protected:
     // Common members accessible to subclasses
     fs::path cwd;
     std::string sourcePath;
     std::string tempOutputPath;
+    std::string tempInputPath;
     int level;
     std::string hash;
+    std::string type;
 
     // Common functions for compression, hashing and moving the object to the store.
     void compressAndHash();

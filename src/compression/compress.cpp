@@ -170,7 +170,7 @@ int Compressor::def(std::ifstream &source, std::ofstream &destination) {
 }
     
 int Compressor::inf(std::ifstream &source, std::ofstream &destination) {
-    std::cout << "Compression stage-1" << std::endl;
+    // std::cout << "Compression stage-1" << std::endl;
     int ret = Z_OK;
     unsigned have;
     z_stream strm;
@@ -185,9 +185,9 @@ int Compressor::inf(std::ifstream &source, std::ofstream &destination) {
 
     ret = inflateInit(&strm);
     if (ret != Z_OK) return ret;
-    std::cout << "Compression stage-2" << std::endl;
+    // std::cout << "Compression stage-2" << std::endl;
     do {
-        std::cout << "We read: " << in.data() << std::endl;
+        // std::cout << "We read: " << in.data() << std::endl;
         source.read(reinterpret_cast<char*>(in.data()), chunkSize);
         int readCount = source.gcount();
 
@@ -202,7 +202,7 @@ int Compressor::inf(std::ifstream &source, std::ofstream &destination) {
             std::cerr << "strm.avail_in: " << strm.avail_in << "\n";
             break;
         }
-        std::cout << "Compression stage-3" << std::endl;
+        // std::cout << "Compression stage-3" << std::endl;
 
         strm.next_in = in.data();
 
@@ -232,7 +232,7 @@ int Compressor::inf(std::ifstream &source, std::ofstream &destination) {
                 inflateEnd(&strm);
                 return Z_ERRNO;
             }
-        std::cout << "Compression stage-4" << std::endl;
+        // std::cout << "Compression stage-4" << std::endl;
 
 
         } while (strm.avail_out == 0);
@@ -240,7 +240,7 @@ int Compressor::inf(std::ifstream &source, std::ofstream &destination) {
 
     } while (ret != Z_STREAM_END);
     assert(ret == Z_STREAM_END);
-    std::cout << "Compression stage-5" << std::endl;
+    // std::cout << "Compression stage-5" << std::endl;
     inflateEnd(&strm);
     return ret == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
 }

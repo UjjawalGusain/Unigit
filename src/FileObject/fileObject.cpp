@@ -18,6 +18,23 @@ FileObject::FileObject(const fs::path& root, const std::string& source, int comp
     tempOutputPath = "temp_object_output.blob";
 }
 
+FileObject::FileObject(const fs::path& root, const std::string& content, const std::string& objectType, int compressionLevel)
+    : cwd(root), level(compressionLevel), type(objectType) {
+    // Write content to temp file to reuse compressAndHash()
+    tempInputPath = "temp_commit_input.blob";
+    tempOutputPath = "temp_commit_output.blob";
+
+    std::ofstream ofs(tempInputPath, std::ios::binary);
+    ofs.write(content.data(), content.size());
+    ofs.close();
+
+    sourcePath = tempInputPath;
+
+    // fs::remove(tempInputPath);
+    // fs::remove(tempOutputPath);
+
+}
+
 void FileObject::write() {
     compressAndHash();
     moveToObjectStore();
@@ -51,9 +68,9 @@ void FileObject::compressAndHash() {
     input.seekg(0, std::ios::beg);
 
     // Use the virtual getType() to build an appropriate header.
-    std::string header = HeaderBuilder::buildBlobHeader(fileSize, getType());
-    compressor.addChunkDef(header.data(), header.size());
-    hasher.addChunk(reinterpret_cast<const uint8_t*>(header.data()), header.size());
+    // std::string header = HeaderBuilder::buildBlobHeader(fileSize, getType());
+    // compressor.addChunkDef(header.data(), header.size());
+    // hasher.addChunk(reinterpret_cast<const uint8_t*>(header.data()), header.size());
 
     std::vector<char> buffer(4096);
     while (!input.eof()) {

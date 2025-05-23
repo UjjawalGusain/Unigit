@@ -1,0 +1,2 @@
+this is b2.txt
+second line of b2.txt

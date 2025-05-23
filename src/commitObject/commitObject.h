@@ -4,34 +4,24 @@
 #include <vector>
 #include <unordered_set>
 #include "../fileObject/fileObject.h"
+#include "json.hpp"
 #include <string>
 #include <filesystem>
 
 namespace fs = std::filesystem;
 
 class CommitObject : public FileObject {
-
     public:
-        CommitObject(const fs::path& root, const std::string& source, int compressionLevel = 6);
-        CommitObject(const std::string& branch, fs::path& cwd);
-        std::string getType() const override { return "commit"; }
+        CommitObject(const fs::path& root, const std::string& content)
+        : FileObject(root, content, "commit") {}
 
-        std::string parentHash;
-        std::string refCommitHash;
-        std::string treeHash;
-        std::string author;
-        std::string committer;
-        std::string message;
-        std::unordered_set<fs::path> filesToCommit;
-    
-        void commit(std::string);
-        void commit(std::vector<std::string>);
+        std::string getType() const override {
+            return "commit";
+        }
 
-        void createCommitObject(const std::vector<std::string>& inputPaths, std::string &parentHash, std::string &author, fs::path &projectRootfolder);
-        std::string getParentCommitHash(const std::string& commitHash, const fs::path& projectRootfolder);
-    private:
-        void collectFilesToCommit(const std::vector<std::string>& inputs);
-        void parseCommitFile(std::ifstream &inFile);
+        static std::string commit(std::string parentHash, nlohmann::json &watcher, fs::path projectRootFolder, fs::path currentPath, const std::string author, const std::string description);
+        static std::string writeObjectToStore(fs::path projectRoot, std::string &content);
+
 };
 
 #endif  // COMMITOBJECT_H
