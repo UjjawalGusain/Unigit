@@ -62,7 +62,6 @@ void updateWatcher(nlohmann::json& watcher) {
     watcher["added"] = nlohmann::json::object();
 }
 
-
 void handleCommit(const std::vector<std::string>& args) {
     if (args.size() < 3) {
         std::cerr << "Usage: unigit commit <branch> <author> <description>" << std::endl;
@@ -96,33 +95,34 @@ void handleCommit(const std::vector<std::string>& args) {
         return;
     }
 
+    // Check if the watcher has an "index" key and it's not empty (staged files)
+    if (!watcher.contains("index") || watcher["index"].empty()) {
+        std::cerr << "No files staged. Use unigit add <filename1> <filename2>..." << std::endl;
+        return;
+    }
 
-    std::string parentHash;
-    parentHash = getCurrentCommitHash(projectRootFolder);
+    std::string parentHash = getCurrentCommitHash(projectRootFolder);
     if (parentHash.empty()) {
         std::cout << "Performing initial commit..." << std::endl;
-    } 
+    }
 
     std::string commitHash = CommitObject::commit(parentHash, watcher, projectRootFolder, projectRootFolder, author, description);
 
     std::cout << "Commit hash: " << commitHash << std::endl;
 
-
-    if(commitHash.empty()) {
+    if (commitHash.empty()) {
         std::cerr << "commit hash is empty" << std::endl;
     } else {
         updateHEAD(commitHash, projectRootFolder);
         updateWatcher(watcher);
     }
 
-
     std::ofstream watcherOut(watcherFile);
     if (watcherOut.is_open()) {
         watcherOut << watcher.dump(4);
         watcherOut.close();
-        // std::cout << "WATCHER file updated.\n";
     } else {
-        std::cerr << "Failed to update WATCHER file.\n";
+        std::cerr << "Failed to update WATCHER file." << std::endl;
     }
 
     std::cout << "Commit created." << std::endl;
@@ -132,6 +132,7 @@ void handleCommit(const std::vector<std::string>& args) {
         fs::remove(tempBlob);
     }
 }
+
 
 void printStatus() {
     fs::path projectRootFolder = findProjectRoot();
@@ -240,7 +241,8 @@ void add(std::vector<std::string> &filenames) {
             {"modified",   nlohmann::json::array()},
             {"new",        nlohmann::json::array()},
             {"removed",    nlohmann::json::array()},
-            {"added",      nlohmann::json::object()}
+            {"added",      nlohmann::json::object()},
+            {"index",      nlohmann::json::object()}
         };
     }
 
@@ -276,6 +278,7 @@ void add(std::vector<std::string> &filenames) {
 
             if (!alreadyTracked) {
                 watcher["added"][p.generic_string()] = fileHash;
+                watcher["index"][p.generic_string()] = fileHash;
                 eraseIfExists(watcher["modified"], p.generic_string());
                 eraseIfExists(watcher["new"], p.generic_string());
                 eraseIfExists(watcher["removed"], p.generic_string());

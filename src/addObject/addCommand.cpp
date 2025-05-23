@@ -115,6 +115,7 @@ void AddCommand::addBlobsRecursively(const fs::path& dir, const fs::path& projec
             // Step 3: update watcher only if file contents changed
             if (!alreadyTracked) {
                 watcher["added"][relPath.generic_string()] = fileHash;
+                watcher["index"][relPath.generic_string()] = fileHash;
                 eraseIfExists(watcher["modified"], relPath.generic_string());
                 eraseIfExists(watcher["new"], relPath.generic_string());
                 eraseIfExists(watcher["removed"], relPath.generic_string());

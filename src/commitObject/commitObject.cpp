@@ -55,18 +55,14 @@ std::string CommitObject::commit(
     const std::string description
 ) {
     if (fs::is_regular_file(currentPath)) {
-        // Regular file: check if staged, return stored hash
+        // Regular file: check if tracked in watcher["index"], return stored hash
         std::string relPath = fs::relative(currentPath, projectRootFolder).generic_string();
 
-        if (watcher["added"].contains(relPath)) {
-            return watcher["added"][relPath].get<std::string>();
+        if (watcher["index"].contains(relPath)) {
+            return watcher["index"][relPath].get<std::string>();
         } else {
-            std::string fileHash = AddCommand::hashAndCompressFile(currentPath);
-            fs::path objectPath = projectRootFolder / ".unigit" / "object" / fileHash.substr(0, 2) / fileHash.substr(2);
-            if (fs::exists(objectPath)) {
-                return fileHash;
-            }
-            return ""; 
+            // If not tracked, skip file (don't add)
+            return "";
         }
 
     } else if (fs::is_directory(currentPath)) {
@@ -78,11 +74,12 @@ std::string CommitObject::commit(
             if (relPath.string().compare(0, 7, ".unigit") == 0) continue;
             if (relPath.string() == "temp_commit_input.blob") continue;
             if (relPath.string() == ".temp_commit_output.blob") continue;
-            std::string relEntryPath = fs::relative(entry.path(), projectRootFolder).generic_string();
 
-            // For files: only continue if staged
-            // For directories: always recurse (they might contain staged files)
-            if (!fs::is_directory(entry) && !watcher["added"].contains(relEntryPath)) {
+            std::string relEntryPath = relPath.generic_string();
+
+            // For files: only continue if tracked in watcher["index"]
+            // For directories: always recurse (might contain tracked files)
+            if (!fs::is_directory(entry) && !watcher["index"].contains(relEntryPath)) {
                 continue;
             }
 
@@ -119,13 +116,10 @@ std::string CommitObject::commit(
 
         // Write tree object to store
         std::string treeHash = writeObjectToStore(projectRootFolder, treeContent);
-        // std::cout << "Tree hash: " << treeHash << std::endl;
-        // std::cout << "Tree content: " << treeContent << std::endl;
 
         watcher["tree"][fs::relative(currentPath, projectRootFolder).generic_string()] = treeHash;
 
         if (currentPath == projectRootFolder) {
-            // std::cout << "We are here. Current path: " << currentPath.string() << " prf: " << projectRootFolder.string() << std::endl; 
             std::string payload;
             payload += "tree " + treeHash + "\n";
             if (!parentHash.empty())
@@ -138,7 +132,6 @@ std::string CommitObject::commit(
 
             std::string commitHash = writeObjectToStore(projectRootFolder, commitContent);
             return commitHash;
-            /////////////////////////
         }
 
         return treeHash;
