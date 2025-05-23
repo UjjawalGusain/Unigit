@@ -10,6 +10,7 @@
 #include "../utils/utils.h"
 #include "json.hpp"
 #include "../addObject/addCommand.hpp"
+#include "../checkoutCommand/checkoutCommand.hpp"
 namespace fs = std::filesystem;
 
 
@@ -355,7 +356,32 @@ void cat(std::vector<std::string> &args) {
     }
 
     std::cout << buffer.str();
+}
 
+void checkout(std::vector<std::string> &args) {
+    fs::path projectRootFolder = findProjectRoot();
+
+    if (args.size() > 2 || args.size() <= 0) {
+        std::cerr << "Format of checkout: \n";
+        std::cerr << "unigit checkout <commit_hash>\n";
+        std::cerr << "unigit checkout <commit_hash> <file_name>\n";
+        return;
+    }
+
+    std::string commitHash = args[0];
+    fs::path commitObjectPath = projectRootFolder / ".unigit" / "object" / commitHash.substr(0, 2) / commitHash.substr(2);
+
+    if (!fs::exists(commitObjectPath)) {
+        std::cerr << "Commit object does not exist" << std::endl;
+        return;
+    }
+
+    if (args.size() == 1) {
+        CheckoutCommand::restoreCommit(commitHash, projectRootFolder);
+        std::cout << "Workspace updated to commit " << commitHash << std::endl;
+    } else {
+        std::cerr << "unigit checkout <commit_hash> <file_name> is not implemented yet.\n";
+    }
 }
 
 
@@ -384,6 +410,8 @@ void runCommand(int argc, char* argv[]) {
         add(args);  
     } else if (command == "cat") {
         cat(args);
+    } else if (command == "checkout") {
+        checkout(args);
     } else {
         std::cerr << "Unknown command: " << command << std::endl;
     }

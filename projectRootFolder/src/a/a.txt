@@ -1,3 +1,5 @@
 this is a.txt
 second line of a.txt
 third line of a.txt
+
+This is a changed line
