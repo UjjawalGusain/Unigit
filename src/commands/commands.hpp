@@ -107,6 +107,22 @@ void handleCommit(const std::vector<std::string>& args) {
 
     std::string commitHash = CommitObject::commit(parentHash, watcher, projectRootFolder, projectRootFolder, author, description);
 
+    if (!commitHash.empty()) {
+        nlohmann::json logEntry = {
+            {"hash", commitHash},
+            {"branch", branch},
+            {"author", author},
+            {"description", description},
+            {"timestamp", std::time(nullptr)}
+        };
+
+        if (!watcher.contains("logs") || !watcher["logs"].is_array()) {
+            watcher["logs"] = nlohmann::json::array();
+        }
+
+        watcher["logs"].push_back(logEntry);
+    }
+
     std::cout << "Commit hash: " << commitHash << std::endl;
 
     if (commitHash.empty()) {
@@ -185,6 +201,45 @@ void printStatus() {
         }
     } else {
         std::cout << "  None" << std::endl;
+    }
+}
+
+void handleLogs() {
+    fs::path projectRootFolder = findProjectRoot();
+    fs::path watcherFile = projectRootFolder / ".unigit" / "WATCHER";
+
+    if (!fs::exists(watcherFile)) {
+        std::cerr << "No commits found." << std::endl;
+        return;
+    }
+
+    std::ifstream file(watcherFile);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open WATCHER file." << std::endl;
+        return;
+    }
+
+    nlohmann::json watcher;
+    try {
+        file >> watcher;
+    } catch (const std::exception& e) {
+        std::cerr << "Failed to parse WATCHER JSON: " << e.what() << std::endl;
+        return;
+    }
+
+    if (!watcher.contains("logs") || !watcher["logs"].is_array()) {
+        std::cerr << "No commit logs found." << std::endl;
+        return;
+    }
+
+    for (const auto& log : watcher["logs"]) {
+        std::time_t t = log.value("timestamp", 0);
+        std::cout << "Commit: " << log.value("hash", "") << std::endl;
+        std::cout << "Author: " << log.value("author", "") << std::endl;
+        std::cout << "Branch: " << log.value("branch", "") << std::endl;
+        std::cout << "Message: " << log.value("description", "") << std::endl;
+        std::cout << "Date: " << std::asctime(std::localtime(&t));
+        std::cout << "-----------------------------" << std::endl;
     }
 }
 
@@ -404,6 +459,8 @@ void runCommand(int argc, char* argv[]) {
         cat(args);
     } else if (command == "checkout") {
         checkout(args);
+    } else if (command == "logs") {
+        handleLogs();
     } else {
         std::cerr << "Unknown command: " << command << std::endl;
     }
