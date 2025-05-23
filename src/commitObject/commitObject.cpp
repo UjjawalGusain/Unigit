@@ -8,11 +8,9 @@
 #include <ctime>
 #include <string>
 #include "../compression/compress.h"
-#include "../header/header.h"
 #include "../hashing/hasher.h"
-#include "../utils/utils.h" // gets us getObjectType function
+#include "../utils/utils.h" 
 #include "../blobObject/blobObject.h"
-#include "../treeObject/treeObject.h"
 #include "../fileObject/fileObject.h"
 #include "../utils/utils.h"
 #include "../addObject/addCommand.hpp"
@@ -24,12 +22,10 @@ std::string CommitObject::writeObjectToStore(fs::path projectRoot, std::string& 
     std::string hash;
 
     try {
-        // Use the constructor that handles content directly
-        FileObject fileObj(projectRoot, content, "commit");  // Sets up temp file and type
-        fileObj.write();  // Compress + hash + move to object store
+        FileObject fileObj(projectRoot, content, "commit");  
+        fileObj.write(); 
 
         hash = fileObj.getHash();
-        // std::cout << "Commit object stored with hash: " << hash << "\n";
     } catch (const std::exception& e) {
         std::cerr << "Failed to write commit object: " << e.what() << "\n";
     }
@@ -55,13 +51,11 @@ std::string CommitObject::commit(
     const std::string description
 ) {
     if (fs::is_regular_file(currentPath)) {
-        // Regular file: check if tracked in watcher["index"], return stored hash
         std::string relPath = fs::relative(currentPath, projectRootFolder).generic_string();
 
         if (watcher["index"].contains(relPath)) {
             return watcher["index"][relPath].get<std::string>();
         } else {
-            // If not tracked, skip file (don't add)
             return "";
         }
 
@@ -77,17 +71,13 @@ std::string CommitObject::commit(
 
             std::string relEntryPath = relPath.generic_string();
 
-            // For files: only continue if tracked in watcher["index"]
-            // For directories: always recurse (might contain tracked files)
             if (!fs::is_directory(entry) && !watcher["index"].contains(relEntryPath)) {
                 continue;
             }
 
-            // Recurse and get hash of child blob/tree
             std::string childHash = commit(parentHash, watcher, projectRootFolder, entry.path(), author, description);
             if (childHash.empty()) continue;
 
-            // Determine mode string
             auto perms = fs::status(entry).permissions();
             std::string mode;
             if (fs::is_directory(entry)) {
@@ -114,7 +104,6 @@ std::string CommitObject::commit(
 
         std::string treeContent = "tree " + std::to_string(combined.size()) + '\0' + combined;
 
-        // Write tree object to store
         std::string treeHash = writeObjectToStore(projectRootFolder, treeContent);
 
         watcher["tree"][fs::relative(currentPath, projectRootFolder).generic_string()] = treeHash;

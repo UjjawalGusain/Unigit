@@ -1,19 +1,8 @@
-// utils.h
 #ifndef UTILS_H
 #define UTILS_H
 
 #include <string>
 #include <filesystem>
-
-// Decompress a stored object file and return its full contents
-std::string readDecompressedObject(const std::filesystem::path &objectPath);
-
-// Compute SHA1 (or equivalent) hash of a file using existing Hasher
-std::string sha1FromFile(const std::filesystem::path &filePath);
-
-#endif // UTILS_H
-
-// utils.cpp
 #include "utils.h"
 #include <fstream>
 #include <sstream>
@@ -24,6 +13,14 @@ std::string sha1FromFile(const std::filesystem::path &filePath);
 #include <filesystem>
 #include <stdexcept>
 namespace fs = std::filesystem;
+
+std::string readDecompressedObject(const std::filesystem::path &objectPath);
+
+std::string sha1FromFile(const std::filesystem::path &filePath);
+
+#endif 
+
+
 
 fs::path findUnigitRoot() {
     fs::path current = fs::current_path();
@@ -48,7 +45,6 @@ void eraseIfExists(nlohmann::json& arr, const std::string& val) {
 }
 
 
-// Decompress a stored object file and return its full contents (including header and body)
 std::string readDecompressedObject(const std::filesystem::path &objectPath) {
     std::ifstream input(objectPath, std::ios::binary);
     if (!input) {
@@ -126,7 +122,6 @@ std::string readFile(const fs::path &filePath) {
 void updateHEAD(const std::string& newCommitHash, fs::path projectRootfolder) {
     fs::path headPath = projectRootfolder / ".unigit" / "HEAD";
 
-    // Create and write to HEAD (overwrites if exists)
     std::ofstream headFile(headPath, std::ios::trunc);
     if (!headFile.is_open()) {
         throw std::runtime_error("Failed to open or create .unigit/HEAD for writing.");
@@ -138,7 +133,6 @@ void updateHEAD(const std::string& newCommitHash, fs::path projectRootfolder) {
 
 std::string getCurrentCommitHash(fs::path projectRootfolder) {
     fs::path headPath = projectRootfolder / ".unigit" / "HEAD";
-    // std::cout << headPath << std::endl;
 
     if (!fs::exists(headPath)) {
         return "";

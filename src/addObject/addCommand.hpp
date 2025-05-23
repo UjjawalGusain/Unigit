@@ -1,4 +1,3 @@
-// AddCommand.h
 #pragma once
 
 #include <iostream>
@@ -25,6 +24,5 @@ public:
 private:
     fs::path projectRoot;
     int compressionLevel;
-
 };
 

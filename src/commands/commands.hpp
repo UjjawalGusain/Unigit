@@ -59,7 +59,6 @@ void updateWatcher(nlohmann::json& watcher) {
         }
     }
 
-    // Clear the "added" section
     watcher["added"] = nlohmann::json::object();
 }
 
@@ -96,7 +95,6 @@ void handleCommit(const std::vector<std::string>& args) {
         return;
     }
 
-    // Check if the watcher has an "index" key and it's not empty (staged files)
     if (!watcher.contains("index") || watcher["index"].empty()) {
         std::cerr << "No files staged. Use unigit add <filename1> <filename2>..." << std::endl;
         return;
@@ -139,13 +137,11 @@ void printStatus() {
     fs::path projectRootFolder = findProjectRoot();
     fs::path watcherFile = projectRootFolder / ".unigit" / "WATCHER";
 
-    // Check if the WATCHER file exists
     if (!fs::exists(watcherFile)) {
         std::cout << "WATCHER file not found at " << watcherFile << std::endl;
         return;
     }
 
-    // Read the content of WATCHER file
     std::ifstream file(watcherFile);
     if (!file.is_open()) {
         std::cout << "Failed to open WATCHER file." << std::endl;
@@ -228,7 +224,6 @@ void printInfo() {
 }
 
 void add(std::vector<std::string> &filenames) {
-    // std::cout << "Reached add function" << std::endl;
     fs::path projectRootFolder = findProjectRoot();
     fs::path watcherPath = projectRootFolder / ".unigit" / "WATCHER";
     nlohmann::json watcher;
@@ -259,13 +254,10 @@ void add(std::vector<std::string> &filenames) {
         }
 
         if (fs::is_regular_file(fullPath)) {
-            // Compute hash of current file contents (without compressing yet)
             std::string fileHash = addCmd.hashFile(fullPath);  // <-- just hash, no compress here!
-            // std::cout << "fileHash in add: " << fileHash << std::endl;
             std::cout << "File staged: " << fullPath << std::endl;
 
 
-            // Compose object path from this hash
             fs::path objectPath = projectRootFolder / ".unigit" / "object" / fileHash.substr(0, 2) / fileHash.substr(2);
 
             bool alreadyTracked = watcher["added"].contains(p.generic_string()) &&
@@ -346,7 +338,7 @@ void cat(std::vector<std::string> &args) {
     }
 
     std::stringstream buffer;
-    std::ostream& output = buffer;  // `output` satisfies `std::ofstream&` requirement
+    std::ostream& output = buffer; 
 
     Compressor compressor(4096, 7);
     int result = compressor.inf(file, reinterpret_cast<std::ofstream&>(output));

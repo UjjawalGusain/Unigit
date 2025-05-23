@@ -1,7 +1,6 @@
 #include "fileObject.h"
 #include "../compression/compress.h"
 #include "../hashing/hasher.h"
-#include "../header/header.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -14,13 +13,11 @@ int LEVEL = 6;
 
 FileObject::FileObject(const fs::path& root, const std::string& source, int compressionLevel)
     : cwd(root), sourcePath(source), level(compressionLevel) {
-    // Setting a temporary file name for object creation.
     tempOutputPath = "temp_object_output.blob";
 }
 
 FileObject::FileObject(const fs::path& root, const std::string& content, const std::string& objectType, int compressionLevel)
     : cwd(root), level(compressionLevel), type(objectType) {
-    // Write content to temp file to reuse compressAndHash()
     tempInputPath = "temp_commit_input.blob";
     tempOutputPath = "temp_commit_output.blob";
 
@@ -29,10 +26,6 @@ FileObject::FileObject(const fs::path& root, const std::string& content, const s
     ofs.close();
 
     sourcePath = tempInputPath;
-
-    // fs::remove(tempInputPath);
-    // fs::remove(tempOutputPath);
-
 }
 
 void FileObject::write() {
@@ -62,15 +55,9 @@ void FileObject::compressAndHash() {
     Hasher hasher;
     hasher.begin();
 
-    // Determine file size for header preparation.
     input.seekg(0, std::ios::end);
     size_t fileSize = input.tellg();
     input.seekg(0, std::ios::beg);
-
-    // Use the virtual getType() to build an appropriate header.
-    // std::string header = HeaderBuilder::buildBlobHeader(fileSize, getType());
-    // compressor.addChunkDef(header.data(), header.size());
-    // hasher.addChunk(reinterpret_cast<const uint8_t*>(header.data()), header.size());
 
     std::vector<char> buffer(4096);
     while (!input.eof()) {
@@ -112,14 +99,12 @@ void FileObject::decompress(const std::string& hash, const fs::path& outputPath)
 
     std::string fullData = decompressedData.str();
 
-    // Locate the header end marker (null character)
     auto nullPos = fullData.find('\0');
     if (nullPos == std::string::npos) {
         std::cerr << "Invalid object header.\n";
         return;
     }
 
-    // Skip the header and write only the content.
     std::string content = fullData.substr(nullPos + 1);
 
     std::ofstream output(outputPath, std::ios::binary);

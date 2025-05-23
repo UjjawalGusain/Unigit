@@ -1,33 +1,17 @@
 #include "addCommand.hpp"
-#include "../utils/utils.h"  // for getObjectType, if needed
+#include "../utils/utils.h"
 #include "json.hpp"
 #include "../blobObject/blobObject.h"
-#include "../header/header.h"
 #define LEVEL 7
 
 AddCommand::AddCommand(const fs::path& root, int compressionLevel) {}
-
-// std::string AddCommand::hashAndCompressFile(fs::path entry) {
-//     std::cout << "Reached hashAndCompressFile function" << std::endl;
-
-//     std::string hash;
-//     fs::path projectRoot = findProjectRoot();
-
-//     BlobObject blob(projectRoot, entry.string(), LEVEL);
-//     blob.write();
-//     hash = blob.getHash();
-
-//     std::cout << "Reached out of hashAndCompressFile function" << std::endl;
-//     return hash;
-// }
 
 std::string AddCommand::writeObjectToStore(fs::path projectRoot, std::string& content) {
     std::string hash;
 
     try {
-        // Use the constructor that handles content directly
-        FileObject fileObj(projectRoot, content, "commit");  // Sets up temp file and type
-        fileObj.write();  // Compress + hash + move to object store
+        FileObject fileObj(projectRoot, content, "commit");  
+        fileObj.write();  
 
         hash = fileObj.getHash();
     } catch (const std::exception& e) {
@@ -40,20 +24,13 @@ std::string AddCommand::writeObjectToStore(fs::path projectRoot, std::string& co
 
 
 std::string AddCommand::hashAndCompressFile(fs::path entry) {
-    // std::cout << "Reached hashAndCompressFile function" << std::endl;
-
     fs::path projectRoot = findProjectRoot();
 
     BlobObject blob(projectRoot, entry.string(), LEVEL);
     std::string rawContent = blob.getRawContent();
-
-    // Add header for blob object, just like for tree and commit
     std::string contentWithHeader = "blob " + std::to_string(rawContent.size()) + '\0' + rawContent;
 
-    // Write this to object store, get hash
     std::string hash = writeObjectToStore(projectRoot, contentWithHeader);
-
-    // std::cout << "Reached out of hashAndCompressFile function" << std::endl;
     return hash;
 }
 
@@ -67,12 +44,11 @@ std::string AddCommand::hashFile(fs::path filePath) {
         throw std::runtime_error("Cannot open input file: " + filePath.string());
     }
 
-    // Prepare header similar to compressAndHash (but no compression)
     input.seekg(0, std::ios::end);
     size_t fileSize = input.tellg();
     input.seekg(0, std::ios::beg);
 
-    std::string header = HeaderBuilder::buildBlobHeader(fileSize, "blob"); // or getType() if needed
+    std::string header = "blob " + std::to_string(fileSize) + '\0';
     hasher.addChunk(reinterpret_cast<const uint8_t*>(header.data()), header.size());
 
     std::vector<char> buffer(4096);
@@ -97,22 +73,18 @@ void AddCommand::addBlobsRecursively(const fs::path& dir, const fs::path& projec
             continue;
 
         if (fs::is_regular_file(entry)) {
-            // Step 1: hash only, no compression yet
             std::string fileHash = hashFile(entry.path());
             std::cout << "File staged: " << entry.path() << std::endl;
-            // std::cout << "fileHash: " << fileHash << std::endl;
             fs::path objectPath = projectRoot / ".unigit" / "object" / fileHash.substr(0, 2) / fileHash.substr(2);
 
             bool alreadyTracked = watcher["added"].contains(relPath.generic_string()) &&
                                   watcher["added"][relPath.generic_string()] == fileHash;
             bool objectExists = fs::exists(objectPath);
 
-            // Step 2: compress and store only if needed
             if (!objectExists) {
                 hashAndCompressFile(entry.path());
             }
 
-            // Step 3: update watcher only if file contents changed
             if (!alreadyTracked) {
                 watcher["added"][relPath.generic_string()] = fileHash;
                 watcher["index"][relPath.generic_string()] = fileHash;

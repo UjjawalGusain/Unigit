@@ -24,4 +24,4 @@ class CommitObject : public FileObject {
 
 };
 
-#endif  // COMMITOBJECT_H
+#endif 

@@ -4,7 +4,6 @@
 #include <filesystem>
 #include "json.hpp"
 namespace fs = std::filesystem;
-// std::string getObjectType(fs::path &objectPath, const std::string &hash);
 std::string readDecompressedObject(const fs::path &objectPath);
 std::string sha1FromFile(const fs::path &filePath);
 fs::path findUnigitRoot();
