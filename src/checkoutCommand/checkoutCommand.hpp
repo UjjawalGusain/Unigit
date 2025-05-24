@@ -10,6 +10,7 @@
 #include <tchar.h>
 #include <unordered_set>
 #include <vector>
+#include "../config/config.h"
 namespace fs = std::filesystem;
 class CheckoutCommand {
 public:
@@ -45,8 +46,7 @@ private:
         std::stringstream buffer;
         std::ostream &output = buffer;
 
-        Compressor compressor(4096, 7);
-        // int result = compressor.inf(file, reinterpret_cast<std::ofstream &>(output));
+        Compressor compressor(CHUNK_SIZE, LEVEL);
         int result = compressor.inf(file, output);
         if (result != Z_OK) {
             std::cerr << "Failed to decompress object (error code: " << result << ")" << std::endl;

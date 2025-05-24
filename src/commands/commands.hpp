@@ -13,6 +13,7 @@
 #include <tchar.h>
 #include <unordered_set>
 #include <vector>
+#include "../config/config.h"
 namespace fs = std::filesystem;
 
 void initRepo() {
@@ -291,47 +292,31 @@ void add(std::vector<std::string> &filenames) {
             {"new", nlohmann::json::array()},
             {"removed", nlohmann::json::array()},
             {"added", nlohmann::json::object()},
-            {"index", nlohmann::json::object()}};
+            {"index", nlohmann::json::object()}
+        };
     }
 
-    AddCommand addCmd(projectRootFolder, 7);
+    AddCommand addCmd(projectRootFolder, LEVEL);
+    std::vector<fs::path> uniquePaths;
 
+    std::unordered_set<fs::path> seen;
     for (const auto &filename : filenames) {
-        fs::path p = fs::path(filename).lexically_normal();
-        fs::path fullPath = projectRootFolder / p;
-
-        if (!fs::exists(fullPath)) {
-            std::cerr << "Warning: path does not exist: " << fullPath << "\n";
-            continue;
+        fs::path p = (projectRootFolder / fs::path(filename).lexically_normal());
+        bool covered = false;
+        for (const auto &base : seen) {
+            if (p == base || std::mismatch(base.begin(), base.end(), p.begin()).first == base.end()) {
+                covered = true; break;
+            }
         }
-
-        if (fs::is_regular_file(fullPath)) {
-            std::string fileHash = addCmd.hashFile(fullPath); // <-- just hash, no compress here!
-            std::cout << "File staged: " << fullPath << std::endl;
-
-            fs::path objectPath = projectRootFolder / ".unigit" / "object" / fileHash.substr(0, 2) / fileHash.substr(2);
-
-            bool alreadyTracked = watcher["added"].contains(p.generic_string()) &&
-                                  watcher["added"][p.generic_string()] == fileHash;
-
-            bool objectExists = fs::exists(objectPath);
-
-            if (!objectExists) {
-                addCmd.hashAndCompressFile(fullPath);
-            }
-
-            if (!alreadyTracked) {
-                watcher["added"][p.generic_string()] = fileHash;
-                watcher["index"][p.generic_string()] = fileHash;
-                eraseIfExists(watcher["modified"], p.generic_string());
-                eraseIfExists(watcher["new"], p.generic_string());
-                eraseIfExists(watcher["removed"], p.generic_string());
-            }
-
-        } else if (fs::is_directory(fullPath)) {
-            addCmd.addBlobsRecursively(fullPath, projectRootFolder, watcher);
+        if (!covered) {
+            seen.insert(p);
         }
     }
+
+    uniquePaths.assign(seen.begin(), seen.end());
+
+    // One-pass traversal
+    addCmd.addBlobsOnce(uniquePaths, projectRootFolder, watcher);
 
     std::ofstream out(watcherPath);
     out << watcher.dump(4);
@@ -391,7 +376,7 @@ void cat(std::vector<std::string> &args) {
     std::stringstream buffer;
     std::ostream &output = buffer;
 
-    Compressor compressor(4096, 7);
+    Compressor compressor(CHUNK_SIZE, LEVEL);
     // int result = compressor.inf(file, reinterpret_cast<std::ofstream &>(output));
     int result = compressor.inf(file, output);
     if (result != Z_OK) {

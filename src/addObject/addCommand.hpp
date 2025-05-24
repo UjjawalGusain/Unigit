@@ -18,7 +18,7 @@ public:
     std::string hashFile(fs::path filePath);
 
     static std::string hashAndCompressFile(fs::path entry);
-    void addBlobsRecursively(const fs::path &dir, const fs::path &projectRoot, nlohmann::json &watcher);
+    void addBlobsOnce(const std::vector<fs::path>& basePaths, const fs::path &projectRoot, nlohmann::json &watcher);
     static std::string writeObjectToStore(fs::path projectRoot, std::string &content);
 
 private:

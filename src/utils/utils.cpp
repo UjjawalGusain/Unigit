@@ -11,6 +11,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include "../config/config.h"
 namespace fs = std::filesystem;
 
 std::string readDecompressedObject(const std::filesystem::path &objectPath);
@@ -50,10 +51,10 @@ std::string readDecompressedObject(const std::filesystem::path &objectPath) {
     }
 
     std::ostringstream decompressed;
-    Compressor compressor(4096, 6);
+    Compressor compressor(CHUNK_SIZE, LEVEL);
     compressor.beginInf(input, decompressed);
 
-    std::vector<char> buffer(4096);
+    std::vector<char> buffer(CHUNK_SIZE);
     while (!input.eof()) {
         input.read(buffer.data(), buffer.size());
         std::streamsize bytesRead = input.gcount();
@@ -75,7 +76,7 @@ std::string sha1FromFile(const std::filesystem::path &filePath) {
     Hasher hasher;
     hasher.begin();
 
-    std::vector<char> buffer(4096);
+    std::vector<char> buffer(CHUNK_SIZE);
     while (!file.eof()) {
         file.read(buffer.data(), buffer.size());
         std::streamsize bytesRead = file.gcount();
@@ -91,7 +92,7 @@ std::string sha1FromString(const std::string &input) {
     Hasher hasher;
     hasher.begin();
 
-    size_t chunkSize = 4096;
+    size_t chunkSize = CHUNK_SIZE;
     size_t offset = 0;
     while (offset < input.size()) {
         size_t len = std::min(chunkSize, input.size() - offset);

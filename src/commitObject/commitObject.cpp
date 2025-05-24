@@ -64,10 +64,6 @@ std::string CommitObject::commit(
                 continue;
             if (relPath.string().compare(0, 7, ".unigit") == 0)
                 continue;
-            if (relPath.string() == "temp_commit_input.blob")
-                continue;
-            if (relPath.string() == ".temp_commit_output.blob")
-                continue;
 
             std::string relEntryPath = relPath.generic_string();
 
