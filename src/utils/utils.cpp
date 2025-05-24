@@ -1,6 +1,3 @@
-#ifndef UTILS_H
-#define UTILS_H
-
 #include "utils.h"
 #include "../compression/compress.h"
 #include "../hashing/hasher.h"
@@ -13,12 +10,6 @@
 #include <string>
 #include "../config/config.h"
 namespace fs = std::filesystem;
-
-std::string readDecompressedObject(const std::filesystem::path &objectPath);
-
-std::string sha1FromFile(const std::filesystem::path &filePath);
-
-#endif
 
 fs::path findUnigitRoot() {
     fs::path current = fs::current_path();
