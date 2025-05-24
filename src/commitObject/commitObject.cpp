@@ -1,32 +1,30 @@
-#include <iostream>
-#include <fstream>
-#include <filesystem>
-#include <vector>
-#include <unordered_set>
+#include "commitObject.h"
+#include "../addObject/addCommand.hpp"
+#include "../blobObject/blobObject.h"
+#include "../compression/compress.h"
+#include "../fileObject/fileObject.h"
+#include "../hashing/hasher.h"
+#include "../utils/utils.h"
 #include <algorithm>
 #include <chrono>
 #include <ctime>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <string>
-#include "../compression/compress.h"
-#include "../hashing/hasher.h"
-#include "../utils/utils.h" 
-#include "../blobObject/blobObject.h"
-#include "../fileObject/fileObject.h"
-#include "../utils/utils.h"
-#include "../addObject/addCommand.hpp"
-#include "commitObject.h"
+#include <unordered_set>
+#include <vector>
 namespace fs = std::filesystem;
 
-
-std::string CommitObject::writeObjectToStore(fs::path projectRoot, std::string& content) {
+std::string CommitObject::writeObjectToStore(fs::path projectRoot, std::string &content) {
     std::string hash;
 
     try {
-        FileObject fileObj(projectRoot, content, "commit");  
-        fileObj.write(); 
+        FileObject fileObj(projectRoot, content, "commit");
+        fileObj.write();
 
         hash = fileObj.getHash();
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         std::cerr << "Failed to write commit object: " << e.what() << "\n";
     }
 
@@ -41,15 +39,13 @@ std::string getCurrentTimestamp() {
     return buffer;
 }
 
-
 std::string CommitObject::commit(
     std::string parentHash,
     nlohmann::json &watcher,
     fs::path projectRootFolder,
     fs::path currentPath,
     const std::string author,
-    const std::string description
-) {
+    const std::string description) {
     if (fs::is_regular_file(currentPath)) {
         std::string relPath = fs::relative(currentPath, projectRootFolder).generic_string();
 
@@ -62,12 +58,16 @@ std::string CommitObject::commit(
     } else if (fs::is_directory(currentPath)) {
         std::vector<std::tuple<std::string, std::string, std::string>> entries;
 
-        for (const auto& entry : fs::directory_iterator(currentPath)) {
+        for (const auto &entry : fs::directory_iterator(currentPath)) {
             fs::path relPath = fs::relative(entry.path(), projectRootFolder);
-            if (relPath.empty()) continue;
-            if (relPath.string().compare(0, 7, ".unigit") == 0) continue;
-            if (relPath.string() == "temp_commit_input.blob") continue;
-            if (relPath.string() == ".temp_commit_output.blob") continue;
+            if (relPath.empty())
+                continue;
+            if (relPath.string().compare(0, 7, ".unigit") == 0)
+                continue;
+            if (relPath.string() == "temp_commit_input.blob")
+                continue;
+            if (relPath.string() == ".temp_commit_output.blob")
+                continue;
 
             std::string relEntryPath = relPath.generic_string();
 
@@ -76,7 +76,8 @@ std::string CommitObject::commit(
             }
 
             std::string childHash = commit(parentHash, watcher, projectRootFolder, entry.path(), author, description);
-            if (childHash.empty()) continue;
+            if (childHash.empty())
+                continue;
 
             auto perms = fs::status(entry).permissions();
             std::string mode;
@@ -92,13 +93,13 @@ std::string CommitObject::commit(
         }
 
         if (entries.empty()) {
-            return "";  
+            return "";
         }
 
         std::sort(entries.begin(), entries.end());
 
         std::string combined;
-        for (const auto& [name, hash, mode] : entries) {
+        for (const auto &[name, hash, mode] : entries) {
             combined += mode + " " + name + ":" + hash + "\n";
         }
 

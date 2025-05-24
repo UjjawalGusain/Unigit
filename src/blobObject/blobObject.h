@@ -3,16 +3,16 @@
 
 #include "../fileObject/fileObject.h"
 
-#include <string>
 #include <filesystem>
+#include <string>
 namespace fs = std::filesystem;
 
 class BlobObject : public FileObject {
 public:
     fs::path filePath;
-    BlobObject(const fs::path& root, const std::string& source, int compressionLevel = 6);
+    BlobObject(const fs::path &root, const std::string &source, int compressionLevel = 6);
     std::string getType() const override { return "blob"; }
     std::string getRawContent();
 };
 
-#endif  
+#endif

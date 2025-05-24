@@ -1,27 +1,25 @@
 #include "addCommand.hpp"
+#include "../blobObject/blobObject.h"
 #include "../utils/utils.h"
 #include "json.hpp"
-#include "../blobObject/blobObject.h"
 #define LEVEL 7
 
-AddCommand::AddCommand(const fs::path& root, int compressionLevel) {}
+AddCommand::AddCommand(const fs::path &root, int compressionLevel) {}
 
-std::string AddCommand::writeObjectToStore(fs::path projectRoot, std::string& content) {
+std::string AddCommand::writeObjectToStore(fs::path projectRoot, std::string &content) {
     std::string hash;
 
     try {
-        FileObject fileObj(projectRoot, content, "commit");  
-        fileObj.write();  
+        FileObject fileObj(projectRoot, content, "commit");
+        fileObj.write();
 
         hash = fileObj.getHash();
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         std::cerr << "Failed to write commit object: " << e.what() << "\n";
     }
 
     return hash;
 }
-
-
 
 std::string AddCommand::hashAndCompressFile(fs::path entry) {
     fs::path projectRoot = findProjectRoot();
@@ -33,7 +31,6 @@ std::string AddCommand::hashAndCompressFile(fs::path entry) {
     std::string hash = writeObjectToStore(projectRoot, contentWithHeader);
     return hash;
 }
-
 
 std::string AddCommand::hashFile(fs::path filePath) {
     Hasher hasher;
@@ -49,14 +46,14 @@ std::string AddCommand::hashFile(fs::path filePath) {
     input.seekg(0, std::ios::beg);
 
     std::string header = "blob " + std::to_string(fileSize) + '\0';
-    hasher.addChunk(reinterpret_cast<const uint8_t*>(header.data()), header.size());
+    hasher.addChunk(reinterpret_cast<const uint8_t *>(header.data()), header.size());
 
     std::vector<char> buffer(4096);
     while (!input.eof()) {
         input.read(buffer.data(), buffer.size());
         std::streamsize bytesRead = input.gcount();
         if (bytesRead > 0) {
-            hasher.addChunk(reinterpret_cast<const uint8_t*>(buffer.data()), bytesRead);
+            hasher.addChunk(reinterpret_cast<const uint8_t *>(buffer.data()), bytesRead);
         }
     }
 
@@ -64,9 +61,8 @@ std::string AddCommand::hashFile(fs::path filePath) {
     return hash;
 }
 
-
-void AddCommand::addBlobsRecursively(const fs::path& dir, const fs::path& projectRoot, nlohmann::json& watcher) {
-    for (const auto& entry : fs::directory_iterator(dir)) {
+void AddCommand::addBlobsRecursively(const fs::path &dir, const fs::path &projectRoot, nlohmann::json &watcher) {
+    for (const auto &entry : fs::directory_iterator(dir)) {
         fs::path relPath = fs::relative(entry.path(), projectRoot);
 
         if (!relPath.empty() && relPath.begin()->string() == ".unigit")
@@ -98,7 +94,3 @@ void AddCommand::addBlobsRecursively(const fs::path& dir, const fs::path& projec
         }
     }
 }
-
-
-
-

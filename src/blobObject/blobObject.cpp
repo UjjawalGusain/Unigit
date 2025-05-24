@@ -1,10 +1,10 @@
 #include "blobObject.h"
-#include <fstream>
 #include "../fileObject/fileObject.h"
+#include <fstream>
 
-BlobObject::BlobObject(const fs::path& root, const std::string& source, int compressionLevel)
+BlobObject::BlobObject(const fs::path &root, const std::string &source, int compressionLevel)
     : FileObject(root, source, compressionLevel) {
-        filePath = fs::path(source);
+    filePath = fs::path(source);
 }
 
 std::string BlobObject::getRawContent() {

@@ -1,26 +1,23 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <string>
-#include <filesystem>
 #include "utils.h"
-#include <fstream>
-#include <sstream>
-#include <iostream>
 #include "../compression/compress.h"
 #include "../hashing/hasher.h"
 #include "json.hpp"
 #include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 #include <stdexcept>
+#include <string>
 namespace fs = std::filesystem;
 
 std::string readDecompressedObject(const std::filesystem::path &objectPath);
 
 std::string sha1FromFile(const std::filesystem::path &filePath);
 
-#endif 
-
-
+#endif
 
 fs::path findUnigitRoot() {
     fs::path current = fs::current_path();
@@ -33,8 +30,9 @@ fs::path findUnigitRoot() {
     throw std::runtime_error("Not a unigit repository (or any of the parent directories): .unigit");
 }
 
-void eraseIfExists(nlohmann::json& arr, const std::string& val) {
-    if (!arr.is_array()) return;
+void eraseIfExists(nlohmann::json &arr, const std::string &val) {
+    if (!arr.is_array())
+        return;
 
     for (size_t i = 0; i < arr.size(); ++i) {
         if (arr[i] == val) {
@@ -43,7 +41,6 @@ void eraseIfExists(nlohmann::json& arr, const std::string& val) {
         }
     }
 }
-
 
 std::string readDecompressedObject(const std::filesystem::path &objectPath) {
     std::ifstream input(objectPath, std::ios::binary);
@@ -83,14 +80,14 @@ std::string sha1FromFile(const std::filesystem::path &filePath) {
         file.read(buffer.data(), buffer.size());
         std::streamsize bytesRead = file.gcount();
         if (bytesRead > 0) {
-            hasher.addChunk(reinterpret_cast<const uint8_t*>(buffer.data()), static_cast<size_t>(bytesRead));
+            hasher.addChunk(reinterpret_cast<const uint8_t *>(buffer.data()), static_cast<size_t>(bytesRead));
         }
     }
 
     return hasher.finish();
 }
 
-std::string sha1FromString(const std::string& input) {
+std::string sha1FromString(const std::string &input) {
     Hasher hasher;
     hasher.begin();
 
@@ -98,7 +95,7 @@ std::string sha1FromString(const std::string& input) {
     size_t offset = 0;
     while (offset < input.size()) {
         size_t len = std::min(chunkSize, input.size() - offset);
-        hasher.addChunk(reinterpret_cast<const uint8_t*>(input.data() + offset), len);
+        hasher.addChunk(reinterpret_cast<const uint8_t *>(input.data() + offset), len);
         offset += len;
     }
 
@@ -107,19 +104,18 @@ std::string sha1FromString(const std::string& input) {
 
 std::string readFile(const fs::path &filePath) {
     std::cout << "Reached readFile function" << std::endl;
-    std::ifstream file(filePath, std::ios::binary); 
+    std::ifstream file(filePath, std::ios::binary);
     if (!file) {
         throw std::runtime_error("Failed to open file: " + filePath.string());
     }
 
     std::ostringstream ss;
-    ss << file.rdbuf();  
+    ss << file.rdbuf();
     std::cout << "Reached out of readFile function" << std::endl;
-    return ss.str();  
+    return ss.str();
 }
 
-
-void updateHEAD(const std::string& newCommitHash, fs::path projectRootfolder) {
+void updateHEAD(const std::string &newCommitHash, fs::path projectRootfolder) {
     fs::path headPath = projectRootfolder / ".unigit" / "HEAD";
 
     std::ofstream headFile(headPath, std::ios::trunc);
@@ -149,7 +145,6 @@ std::string getCurrentCommitHash(fs::path projectRootfolder) {
 
     return hash;
 }
-
 
 fs::path findProjectRoot() {
     fs::path current = fs::current_path();

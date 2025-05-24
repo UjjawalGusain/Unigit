@@ -1,8 +1,8 @@
 #ifndef FILEOBJECT_H
 #define FILEOBJECT_H
 
-#include <iostream>
 #include <filesystem>
+#include <iostream>
 #include <string>
 
 namespace fs = std::filesystem;
@@ -10,20 +10,18 @@ namespace fs = std::filesystem;
 class FileObject {
 public:
     FileObject() = default;
-    FileObject(const fs::path& root, const std::string& source, int compressionLevel = 6);
-    FileObject(const fs::path& root, const std::string& content, const std::string& objectType, int compressionLevel = 6);
-
+    FileObject(const fs::path &root, const std::string &source, int compressionLevel = 6);
+    FileObject(const fs::path &root, const std::string &content, const std::string &objectType, int compressionLevel = 6);
 
     virtual void write();
     virtual std::string getHash() const;
-    virtual void decompress(const std::string& hash, const fs::path& outputPath);
+    virtual void decompress(const std::string &hash, const fs::path &outputPath);
 
     virtual std::string getType() const {
         return type;
     }
 
     virtual ~FileObject() = default;
-    
 
 protected:
     fs::path cwd;
@@ -38,4 +36,4 @@ protected:
     void moveToObjectStore();
 };
 
-#endif 
+#endif

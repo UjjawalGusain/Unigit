@@ -1,18 +1,17 @@
-#include <iostream>
-#include <vector>
-#include <filesystem>
-#include <fstream>
-#include <string>
-#include <stdexcept>
-#include <tchar.h>
-#include <unordered_set>
+#include "../addObject/addCommand.hpp"
+#include "../checkoutCommand/checkoutCommand.hpp"
 #include "../commitObject/commitObject.h"
 #include "../utils/utils.h"
 #include "json.hpp"
-#include "../addObject/addCommand.hpp"
-#include "../checkoutCommand/checkoutCommand.hpp"
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+#include <tchar.h>
+#include <unordered_set>
+#include <vector>
 namespace fs = std::filesystem;
-
 
 void initRepo() {
     std::string author, email;
@@ -44,16 +43,16 @@ void initRepo() {
     std::cout << "Initialized empty UniGit repository for '" << projectName << "' in: " << unigitDir << "\n";
 }
 
-void updateWatcher(nlohmann::json& watcher) {
+void updateWatcher(nlohmann::json &watcher) {
     if (!watcher.contains("added") || !watcher["added"].is_object())
         return;
 
     for (auto it = watcher["added"].begin(); it != watcher["added"].end(); ++it) {
         std::string filePath = it.key();
 
-        for (const std::string& category : {"modified", "new", "removed"}) {
+        for (const std::string &category : {"modified", "new", "removed"}) {
             if (watcher.contains(category) && watcher[category].is_array()) {
-                auto& arr = watcher[category];
+                auto &arr = watcher[category];
                 arr.erase(std::remove(arr.begin(), arr.end(), filePath), arr.end());
             }
         }
@@ -62,7 +61,7 @@ void updateWatcher(nlohmann::json& watcher) {
     watcher["added"] = nlohmann::json::object();
 }
 
-void handleCommit(const std::vector<std::string>& args) {
+void handleCommit(const std::vector<std::string> &args) {
     if (args.size() < 3) {
         std::cerr << "Usage: unigit commit <branch> <author> <description>" << std::endl;
         return;
@@ -90,7 +89,7 @@ void handleCommit(const std::vector<std::string>& args) {
     nlohmann::json watcher;
     try {
         file >> watcher;
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         std::cout << "Failed to parse WATCHER JSON: " << e.what() << std::endl;
         return;
     }
@@ -113,8 +112,7 @@ void handleCommit(const std::vector<std::string>& args) {
             {"branch", branch},
             {"author", author},
             {"description", description},
-            {"timestamp", std::time(nullptr)}
-        };
+            {"timestamp", std::time(nullptr)}};
 
         if (!watcher.contains("logs") || !watcher["logs"].is_array()) {
             watcher["logs"] = nlohmann::json::array();
@@ -148,7 +146,6 @@ void handleCommit(const std::vector<std::string>& args) {
     }
 }
 
-
 void printStatus() {
     fs::path projectRootFolder = findProjectRoot();
     fs::path watcherFile = projectRootFolder / ".unigit" / "WATCHER";
@@ -167,7 +164,7 @@ void printStatus() {
     nlohmann::json watcherJson;
     try {
         file >> watcherJson;
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         std::cout << "Failed to parse WATCHER JSON: " << e.what() << std::endl;
         return;
     }
@@ -177,12 +174,13 @@ void printStatus() {
     bool overloaded = watcherJson.value("overloaded", false);
     std::cout << "Overloaded: " << (overloaded ? "true" : "false") << std::endl;
 
-    auto printArray = [](const nlohmann::json& arr, const std::string& label) {
+    auto printArray = [](const nlohmann::json &arr, const std::string &label) {
         std::cout << label << ": ";
         if (arr.is_array() && !arr.empty()) {
             for (size_t i = 0; i < arr.size(); ++i) {
                 std::cout << arr[i].get<std::string>();
-                if (i != arr.size() - 1) std::cout << ", ";
+                if (i != arr.size() - 1)
+                    std::cout << ", ";
             }
         } else {
             std::cout << "None";
@@ -196,7 +194,7 @@ void printStatus() {
 
     std::cout << "Added (file -> hash):" << std::endl;
     if (watcherJson.contains("added") && watcherJson["added"].is_object()) {
-        for (auto& [file, hash] : watcherJson["added"].items()) {
+        for (auto &[file, hash] : watcherJson["added"].items()) {
             std::cout << "  " << file << " -> " << hash.get<std::string>() << std::endl;
         }
     } else {
@@ -222,7 +220,7 @@ void handleLogs() {
     nlohmann::json watcher;
     try {
         file >> watcher;
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         std::cerr << "Failed to parse WATCHER JSON: " << e.what() << std::endl;
         return;
     }
@@ -232,7 +230,7 @@ void handleLogs() {
         return;
     }
 
-    for (const auto& log : watcher["logs"]) {
+    for (const auto &log : watcher["logs"]) {
         std::time_t t = log.value("timestamp", 0);
         std::cout << "Commit: " << log.value("hash", "") << std::endl;
         std::cout << "Author: " << log.value("author", "") << std::endl;
@@ -242,8 +240,6 @@ void handleLogs() {
         std::cout << "-----------------------------" << std::endl;
     }
 }
-
-
 
 void printInfo() {
     fs::path projectRoot = findProjectRoot();
@@ -289,17 +285,16 @@ void add(std::vector<std::string> &filenames) {
     } else {
         watcher = {
             {"overloaded", false},
-            {"modified",   nlohmann::json::array()},
-            {"new",        nlohmann::json::array()},
-            {"removed",    nlohmann::json::array()},
-            {"added",      nlohmann::json::object()},
-            {"index",      nlohmann::json::object()}
-        };
+            {"modified", nlohmann::json::array()},
+            {"new", nlohmann::json::array()},
+            {"removed", nlohmann::json::array()},
+            {"added", nlohmann::json::object()},
+            {"index", nlohmann::json::object()}};
     }
 
     AddCommand addCmd(projectRootFolder, 7);
 
-    for (const auto& filename : filenames) {
+    for (const auto &filename : filenames) {
         fs::path p = fs::path(filename).lexically_normal();
         fs::path fullPath = projectRootFolder / p;
 
@@ -309,15 +304,14 @@ void add(std::vector<std::string> &filenames) {
         }
 
         if (fs::is_regular_file(fullPath)) {
-            std::string fileHash = addCmd.hashFile(fullPath);  // <-- just hash, no compress here!
+            std::string fileHash = addCmd.hashFile(fullPath); // <-- just hash, no compress here!
             std::cout << "File staged: " << fullPath << std::endl;
-
 
             fs::path objectPath = projectRootFolder / ".unigit" / "object" / fileHash.substr(0, 2) / fileHash.substr(2);
 
             bool alreadyTracked = watcher["added"].contains(p.generic_string()) &&
                                   watcher["added"][p.generic_string()] == fileHash;
-            
+
             bool objectExists = fs::exists(objectPath);
 
             if (!objectExists) {
@@ -331,7 +325,7 @@ void add(std::vector<std::string> &filenames) {
                 eraseIfExists(watcher["new"], p.generic_string());
                 eraseIfExists(watcher["removed"], p.generic_string());
             }
-            
+
         } else if (fs::is_directory(fullPath)) {
             addCmd.addBlobsRecursively(fullPath, projectRootFolder, watcher);
         }
@@ -347,14 +341,14 @@ void add(std::vector<std::string> &filenames) {
 }
 
 void cat(std::vector<std::string> &args) {
-    if((int)args.size() != 1) {
+    if ((int)args.size() != 1) {
         std::cerr << "cat command format: unigit cat hash" << std::endl;
         return;
     }
 
     std::string hash = args[0];
 
-    if((int)hash.size() < 4) {
+    if ((int)hash.size() < 4) {
         std::cerr << "Atleast 4 character hash is required" << std::endl;
         return;
     }
@@ -362,17 +356,17 @@ void cat(std::vector<std::string> &args) {
     fs::path projectRootFolder = findProjectRoot();
 
     fs::path folderPath = projectRootFolder / ".unigit" / "object" / hash.substr(0, 2);
-    if(!fs::exists(folderPath)) {
+    if (!fs::exists(folderPath)) {
         std::cerr << "Object folder does not have this hash" << std::endl;
         return;
     }
 
     std::string remainingHash = hash.substr(2);
     std::vector<fs::path> matches;
-    for (const auto& entry : fs::directory_iterator(folderPath)) {
+    for (const auto &entry : fs::directory_iterator(folderPath)) {
         if (entry.is_regular_file()) {
             std::string filename = entry.path().filename().string();
-            if (filename.rfind(remainingHash, 0) == 0) { 
+            if (filename.rfind(remainingHash, 0) == 0) {
                 matches.push_back(entry.path());
             }
         }
@@ -393,10 +387,10 @@ void cat(std::vector<std::string> &args) {
     }
 
     std::stringstream buffer;
-    std::ostream& output = buffer; 
+    std::ostream &output = buffer;
 
     Compressor compressor(4096, 7);
-    int result = compressor.inf(file, reinterpret_cast<std::ofstream&>(output));
+    int result = compressor.inf(file, reinterpret_cast<std::ofstream &>(output));
     if (result != Z_OK) {
         std::cerr << "Failed to decompress and display object (error code: " << result << ")" << std::endl;
         return;
@@ -431,8 +425,7 @@ void checkout(std::vector<std::string> &args) {
     }
 }
 
-
-void runCommand(int argc, char* argv[]) {
+void runCommand(int argc, char *argv[]) {
     if (argc < 2) {
         std::cerr << "No command provided." << std::endl;
         return;
@@ -454,7 +447,7 @@ void runCommand(int argc, char* argv[]) {
             std::cerr << "No files specified to add." << std::endl;
             return;
         }
-        add(args);  
+        add(args);
     } else if (command == "cat") {
         cat(args);
     } else if (command == "checkout") {

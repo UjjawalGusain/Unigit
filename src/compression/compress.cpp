@@ -1,17 +1,17 @@
+#include "compress.h"
+#include "zlib.h"
+#include <cassert>
+#include <fstream>
 #include <iostream>
 #include <string>
-#include <cassert>
-#include <vector>
-#include <fstream>
 #include <thread>
-#include "zlib.h"
-#include "compress.h"
+#include <vector>
 
 Compressor::Compressor(int chunkSize, int level) {
-    this -> chunkSize = chunkSize;
-    this -> level = level;
-    this -> in.resize(chunkSize);
-    this -> out.resize(chunkSize);
+    this->chunkSize = chunkSize;
+    this->level = level;
+    this->in.resize(chunkSize);
+    this->out.resize(chunkSize);
 }
 
 int Compressor::beginDef(std::ifstream &source, std::ostream &destination) {
@@ -22,33 +22,32 @@ int Compressor::beginDef(std::ifstream &source, std::ostream &destination) {
     strmDef.zfree = Z_NULL;
     strmDef.opaque = Z_NULL;
 
-    this -> dest = &destination;
-    this -> source = &source;
+    this->dest = &destination;
+    this->source = &source;
 
-    retDef = deflateInit(&strmDef, this -> level);
-    if (retDef != Z_OK) return retDef;
+    retDef = deflateInit(&strmDef, this->level);
+    if (retDef != Z_OK)
+        return retDef;
     return retDef;
 }
 
-void Compressor::addChunkDef(const char* data,
-     size_t len, bool isFinal) {
+void Compressor::addChunkDef(const char *data,
+                             size_t len, bool isFinal) {
     strmDef.avail_in = static_cast<uInt>(len);
     flushDef = isFinal ? Z_FINISH : Z_NO_FLUSH;
-    strmDef.next_in = const_cast<Bytef*>(reinterpret_cast<const Bytef*>(data));
-
+    strmDef.next_in = const_cast<Bytef *>(reinterpret_cast<const Bytef *>(data));
 
     do {
         strmDef.avail_out = chunkSize;
-        strmDef.next_out = out.data();  
+        strmDef.next_out = out.data();
 
         retDef = deflate(&strmDef, flushDef);
-        assert(retDef != Z_STREAM_ERROR);   
+        assert(retDef != Z_STREAM_ERROR);
 
         haveDef = chunkSize - strmDef.avail_out;
-        dest->write(reinterpret_cast<char*>(out.data()), haveDef);
+        dest->write(reinterpret_cast<char *>(out.data()), haveDef);
 
     } while (strmDef.avail_out == 0);
-    
 }
 
 void Compressor::finishDef() {
@@ -62,13 +61,13 @@ void Compressor::finishDef() {
         assert(retDef != Z_STREAM_ERROR);
 
         haveDef = chunkSize - strmDef.avail_out;
-        dest->write(reinterpret_cast<char*>(out.data()), haveDef);
+        dest->write(reinterpret_cast<char *>(out.data()), haveDef);
     } while (strmDef.avail_out == 0);
 
     deflateEnd(&strmDef);
 }
 
-int Compressor::beginInf(std::istream& source, std::ostream& destination) {
+int Compressor::beginInf(std::istream &source, std::ostream &destination) {
     strmInf.zalloc = Z_NULL;
     strmInf.zfree = Z_NULL;
     strmInf.opaque = Z_NULL;
@@ -82,9 +81,9 @@ int Compressor::beginInf(std::istream& source, std::ostream& destination) {
     return retInf;
 }
 
-void Compressor::addChunkInf(const char* data, size_t len) {
+void Compressor::addChunkInf(const char *data, size_t len) {
     strmInf.avail_in = static_cast<uInt>(len);
-    strmInf.next_in = reinterpret_cast<Bytef*>(const_cast<char*>(data));
+    strmInf.next_in = reinterpret_cast<Bytef *>(const_cast<char *>(data));
 
     do {
         strmInf.avail_out = chunkSize;
@@ -94,16 +93,16 @@ void Compressor::addChunkInf(const char* data, size_t len) {
         assert(retInf != Z_STREAM_ERROR);
 
         switch (retInf) {
-            case Z_NEED_DICT:
-                retInf = Z_DATA_ERROR;
-            case Z_DATA_ERROR:
-            case Z_MEM_ERROR:
-                inflateEnd(&strmInf);
-                return;
+        case Z_NEED_DICT:
+            retInf = Z_DATA_ERROR;
+        case Z_DATA_ERROR:
+        case Z_MEM_ERROR:
+            inflateEnd(&strmInf);
+            return;
         }
 
         haveInf = chunkSize - strmInf.avail_out;
-        dest->write(reinterpret_cast<char*>(out.data()), haveInf);
+        dest->write(reinterpret_cast<char *>(out.data()), haveInf);
 
     } while (strmInf.avail_out == 0);
 }
@@ -125,15 +124,16 @@ int Compressor::def(std::ifstream &source, std::ofstream &destination) {
     strm.zfree = Z_NULL;
     strm.opaque = Z_NULL;
 
-    ret = deflateInit(&strm, this -> level);
-    if (ret != Z_OK) return ret;
+    ret = deflateInit(&strm, this->level);
+    if (ret != Z_OK)
+        return ret;
 
     do {
-        source.read(reinterpret_cast<char*>(in.data()), chunkSize);
+        source.read(reinterpret_cast<char *>(in.data()), chunkSize);
         int readCount = source.gcount();
         strm.avail_in = static_cast<uInt>(readCount);
 
-        if(readCount == 0 && !source.eof()) {
+        if (readCount == 0 && !source.eof()) {
             std::cerr << "Source stream gone bad during compressing\n";
             deflateEnd(&strm);
             return Z_ERRNO;
@@ -151,24 +151,24 @@ int Compressor::def(std::ifstream &source, std::ofstream &destination) {
             assert(ret != Z_STREAM_ERROR);
 
             have = chunkSize - strm.avail_out;
-            destination.write(reinterpret_cast<char*>(out.data()), have);
-            if(!destination) {
+            destination.write(reinterpret_cast<char *>(out.data()), have);
+            if (!destination) {
                 std::cerr << "Destination stream gone bad\n";
                 deflateEnd(&strm);
                 return Z_ERRNO;
             }
 
         } while (strm.avail_out == 0);
-        
+
         assert(strm.avail_in == 0);
-        
+
     } while (flush != Z_FINISH);
     assert(ret == Z_STREAM_END);
 
     deflateEnd(&strm);
     return Z_OK;
 }
-    
+
 int Compressor::inf(std::ifstream &source, std::ofstream &destination) {
     int ret = Z_OK;
     unsigned have;
@@ -183,13 +183,14 @@ int Compressor::inf(std::ifstream &source, std::ofstream &destination) {
     strm.next_in = Z_NULL;
 
     ret = inflateInit(&strm);
-    if (ret != Z_OK) return ret;
+    if (ret != Z_OK)
+        return ret;
     do {
-        source.read(reinterpret_cast<char*>(in.data()), chunkSize);
+        source.read(reinterpret_cast<char *>(in.data()), chunkSize);
         int readCount = source.gcount();
 
         strm.avail_in = static_cast<uInt>(readCount);
-        if(readCount == 0 && !source.eof()) {
+        if (readCount == 0 && !source.eof()) {
             std::cerr << "Source stream gone bad during decompressing\n";
             inflateEnd(&strm);
             return Z_ERRNO;
@@ -212,23 +213,21 @@ int Compressor::inf(std::ifstream &source, std::ofstream &destination) {
 
             switch (ret) {
 
-                case Z_NEED_DICT:
-                    ret = Z_DATA_ERROR;
-                case Z_DATA_ERROR:
-                case Z_MEM_ERROR:
-                    inflateEnd(&strm);
-                    return ret;
-
+            case Z_NEED_DICT:
+                ret = Z_DATA_ERROR;
+            case Z_DATA_ERROR:
+            case Z_MEM_ERROR:
+                inflateEnd(&strm);
+                return ret;
             }
 
             have = chunkSize - strm.avail_out;
-            destination.write(reinterpret_cast<char*>(out.data()), have);
-            if(!destination) {
+            destination.write(reinterpret_cast<char *>(out.data()), have);
+            if (!destination) {
                 std::cerr << "Destination stream gone bad during decompression\n";
                 inflateEnd(&strm);
                 return Z_ERRNO;
             }
-
 
         } while (strm.avail_out == 0);
         assert(strm.avail_in == 0);
@@ -238,4 +237,3 @@ int Compressor::inf(std::ifstream &source, std::ofstream &destination) {
     inflateEnd(&strm);
     return ret == Z_STREAM_END ? Z_OK : Z_DATA_ERROR;
 }
-

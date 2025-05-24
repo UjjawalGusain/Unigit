@@ -10,13 +10,12 @@ namespace fs = std::filesystem;
 size_t CHUNK = 4096;
 int LEVEL = 6;
 
-
-FileObject::FileObject(const fs::path& root, const std::string& source, int compressionLevel)
+FileObject::FileObject(const fs::path &root, const std::string &source, int compressionLevel)
     : cwd(root), sourcePath(source), level(compressionLevel) {
     tempOutputPath = "temp_object_output.blob";
 }
 
-FileObject::FileObject(const fs::path& root, const std::string& content, const std::string& objectType, int compressionLevel)
+FileObject::FileObject(const fs::path &root, const std::string &content, const std::string &objectType, int compressionLevel)
     : cwd(root), level(compressionLevel), type(objectType) {
     tempInputPath = "temp_commit_input.blob";
     tempOutputPath = "temp_commit_output.blob";
@@ -66,15 +65,15 @@ void FileObject::compressAndHash() {
 
         if (bytesRead > 0) {
             compressor.addChunkDef(buffer.data(), bytesRead, input.eof());
-            hasher.addChunk(reinterpret_cast<const uint8_t*>(buffer.data()), bytesRead);
+            hasher.addChunk(reinterpret_cast<const uint8_t *>(buffer.data()), bytesRead);
         }
     }
 
     compressor.finishDef();
     hash = hasher.finish();
-} 
+}
 
-void FileObject::decompress(const std::string& hash, const fs::path& outputPath) {
+void FileObject::decompress(const std::string &hash, const fs::path &outputPath) {
     fs::path objectPath = cwd / ".unigit" / "object" / hash.substr(0, 2) / hash.substr(2);
 
     std::ifstream input(objectPath, std::ios::binary);
@@ -109,7 +108,6 @@ void FileObject::decompress(const std::string& hash, const fs::path& outputPath)
 
     std::ofstream output(outputPath, std::ios::binary);
     output.write(content.data(), content.size());
-    
 }
 
 void FileObject::moveToObjectStore() {
@@ -141,7 +139,7 @@ void FileObject::moveToObjectStore() {
 
     try {
         fs::rename(tempOutputPath, finalObjectPath);
-    } catch (const fs::filesystem_error& e) {
+    } catch (const fs::filesystem_error &e) {
         std::cerr << "Error moving object file: " << e.what() << "\n";
     }
 }

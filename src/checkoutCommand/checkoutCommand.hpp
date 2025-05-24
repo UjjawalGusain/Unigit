@@ -1,15 +1,15 @@
-#include <iostream>
-#include <vector>
-#include <filesystem>
-#include <fstream>
-#include <string>
-#include <stdexcept>
-#include <tchar.h>
-#include <unordered_set>
+#include "../addObject/addCommand.hpp"
 #include "../commitObject/commitObject.h"
 #include "../utils/utils.h"
 #include "json.hpp"
-#include "../addObject/addCommand.hpp"
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+#include <tchar.h>
+#include <unordered_set>
+#include <vector>
 namespace fs = std::filesystem;
 class CheckoutCommand {
 public:
@@ -34,38 +34,40 @@ public:
     }
 
 private:
-static std::string readObject(const fs::path &projectRootFolder, const std::string &hash) {
-    fs::path objectPath = projectRootFolder / ".unigit" / "object" / hash.substr(0, 2) / hash.substr(2);
-    std::ifstream file(objectPath, std::ios::binary);
-    if (!file) {
-        std::cerr << "Failed to open object file" << std::endl;
-        return "";
+    static std::string readObject(const fs::path &projectRootFolder, const std::string &hash) {
+        fs::path objectPath = projectRootFolder / ".unigit" / "object" / hash.substr(0, 2) / hash.substr(2);
+        std::ifstream file(objectPath, std::ios::binary);
+        if (!file) {
+            std::cerr << "Failed to open object file" << std::endl;
+            return "";
+        }
+
+        std::stringstream buffer;
+        std::ostream &output = buffer;
+
+        Compressor compressor(4096, 7);
+        int result = compressor.inf(file, reinterpret_cast<std::ofstream &>(output));
+        if (result != Z_OK) {
+            std::cerr << "Failed to decompress object (error code: " << result << ")" << std::endl;
+            return "";
+        }
+
+        return buffer.str();
     }
-
-    std::stringstream buffer;
-    std::ostream& output = buffer;
-
-    Compressor compressor(4096, 7);  
-    int result = compressor.inf(file, reinterpret_cast<std::ofstream&>(output));
-    if (result != Z_OK) {
-        std::cerr << "Failed to decompress object (error code: " << result << ")" << std::endl;
-        return "";
-    }
-
-    return buffer.str();
-}
 
     static void restoreTree(const fs::path &projectRootFolder, const std::string &treeHash, const fs::path &destinationPath) {
         std::string treeContent = readObject(projectRootFolder, treeHash);
         size_t nullPos = treeContent.find('\0');
-        if (nullPos == std::string::npos) return;
+        if (nullPos == std::string::npos)
+            return;
 
         std::string entries = treeContent.substr(nullPos + 1);
         std::istringstream iss(entries);
         std::string line;
 
         while (std::getline(iss, line)) {
-            if (line.empty()) continue;
+            if (line.empty())
+                continue;
             size_t spacePos = line.find(' ');
             size_t colonPos = line.find(':');
 
