@@ -2,10 +2,12 @@
 #include "../checkoutCommand/checkoutCommand.hpp"
 #include "../commitObject/commitObject.h"
 #include "../utils/utils.h"
+#include "BS_thread_pool.hpp" 
 #include "json.hpp"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <tchar.h>
@@ -390,7 +392,8 @@ void cat(std::vector<std::string> &args) {
     std::ostream &output = buffer;
 
     Compressor compressor(4096, 7);
-    int result = compressor.inf(file, reinterpret_cast<std::ofstream &>(output));
+    // int result = compressor.inf(file, reinterpret_cast<std::ofstream &>(output));
+    int result = compressor.inf(file, output);
     if (result != Z_OK) {
         std::cerr << "Failed to decompress and display object (error code: " << result << ")" << std::endl;
         return;

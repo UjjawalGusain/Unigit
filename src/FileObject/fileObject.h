@@ -31,6 +31,8 @@ protected:
     int level;
     std::string hash;
     std::string type;
+    std::unique_ptr<std::istringstream> inputStream;
+    std::string compressedData;                      
 
     void compressAndHash();
     void moveToObjectStore();

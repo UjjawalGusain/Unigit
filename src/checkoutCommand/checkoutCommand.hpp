@@ -46,7 +46,8 @@ private:
         std::ostream &output = buffer;
 
         Compressor compressor(4096, 7);
-        int result = compressor.inf(file, reinterpret_cast<std::ofstream &>(output));
+        // int result = compressor.inf(file, reinterpret_cast<std::ofstream &>(output));
+        int result = compressor.inf(file, output);
         if (result != Z_OK) {
             std::cerr << "Failed to decompress object (error code: " << result << ")" << std::endl;
             return "";
