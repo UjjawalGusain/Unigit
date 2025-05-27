@@ -48,7 +48,7 @@ double execute_and_time(const std::string& command) {
 void test_repo(const fs::path& repo_path, std::ofstream& results) {
     std::cout << "Testing repo: " << repo_path << std::endl;
 
-    // remove_gitignore(repo_path);
+    remove_gitignore(repo_path);
 
     std::system(("cd \"" + repo_path.string() + "\" && git init").c_str());
 
@@ -66,18 +66,14 @@ void test_repo(const fs::path& repo_path, std::ofstream& results) {
     std::string init_command = "cd \"" + repo_path.string() + "\" && echo \"Ujjawal Gusain\" && echo \"ujjawalgusain31@gmail.com\" | unigit init";
     std::system(init_command.c_str());
 
-    // Run unigit add and time it
     double unigit_add_time = execute_and_time("cd \"" + repo_path.string() + "\" && unigit add .");
 
-    // Run unigit commit and time it
     double unigit_commit_time = execute_and_time("cd \"" + repo_path.string() + "\" && unigit commit main UjjawalGusain \"first commit\"");
 
-    // Log unigit results
     results << repo_path.filename().string() << " - unigit add: " << unigit_add_time << "s, unigit commit: " << unigit_commit_time << "s\n";
     results << "---------------------------------------------\n";
     results.flush();
 
-    // Delete .unigit directory to clean up for next run
     remove_readonly_and_delete(repo_path / ".unigit");
 }
 
