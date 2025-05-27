@@ -1,0 +1,24 @@
+elasticsearch - git add: 102.939s, git commit: 97.2297s
+elasticsearch - unigit add: 203.697s, unigit commit: 187.843s
+---------------------------------------------
+tensorflow - git add: 101.386s, git commit: 66.0126s
+tensorflow - unigit add: 202.892s, unigit commit: 125.393s
+---------------------------------------------
+opencv - git add: 28.4654s, git commit: 31.1467s
+opencv - unigit add: 66.5796s, unigit commit: 32.1322s
+---------------------------------------------
+vscode - git add: 26.0832s, git commit: 26.1056s
+vscode - unigit add: 58.659s, unigit commit: 39.7774s
+---------------------------------------------
+redis - git add: 5.31015s, git commit: 1.36774s
+redis - unigit add: 10.2568s, unigit commit: 5.43771s
+---------------------------------------------
+vlc - git add: 19.0037s, git commit: 5.27507s
+vlc - unigit add: 51.675s, unigit commit: 19.221s
+---------------------------------------------
+d3 - git add: 0.665493s, git commit: 0.470828s
+d3 - unigit add: 1.34745s, unigit commit: 0.61126s
+---------------------------------------------
+flask - git add: 0.862286s, git commit: 0.408859s
+flask - unigit add: 1.5171s, unigit commit: 1.01292s
+---------------------------------------------
