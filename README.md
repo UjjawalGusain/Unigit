@@ -7,6 +7,7 @@ Welcome to **Unigit**, a lightweight version control system inspired by Git, des
   - [Table of Contents](#table-of-contents)
   - [Introduction](#introduction)
   - [Features](#features)
+  - [Architecture Diagram](#architecture-diagram)
   - [Dependencies](#dependencies)
   - [Building Instructions](#building-instructions)
   - [Basic Usage Example](#basic-usage-example)
@@ -29,6 +30,11 @@ Unigit comes with a set of core commands to manage your projects effectively:
 - **`unigit info`**: Provides repository details, such as the author, project name, and current `HEAD` commit.
 - **`unigit cat <hash>`**: Retrieves and displays the content of a Unigit object (e.g., blob or commit) using its SHA256 hash.
 - **`unigit checkout <commit_hash>`**: Restores the working directory to the state of a specified commit.
+
+## Architecture Diagram
+
+![image](https://github.com/user-attachments/assets/8d55e60e-1dcd-44fb-bf5d-a0b7eb15ee4d)
+
 
 ## Dependencies
 To build and run Unigit, you’ll need the following libraries:
