@@ -172,33 +172,35 @@ void printStatus() {
         return;
     }
 
-    std::cout << "Watcher status:" << std::endl;
-
-    bool overloaded = watcherJson.value("overloaded", false);
-    std::cout << "Overloaded: " << (overloaded ? "true" : "false") << std::endl;
-
-    auto printArray = [](const nlohmann::json &arr, const std::string &label) {
-        std::cout << label << ": ";
-        if (arr.is_array() && !arr.empty()) {
-            for (size_t i = 0; i < arr.size(); ++i) {
-                std::cout << arr[i].get<std::string>();
-                if (i != arr.size() - 1)
-                    std::cout << ", ";
-            }
-        } else {
-            std::cout << "None";
+    // Print index (file -> hash)
+    std::cout << "File Tracked (index):" << std::endl;
+    if (watcherJson.contains("index") && watcherJson["index"].is_object()) {
+        for (auto &[file, hash] : watcherJson["index"].items()) {
+            std::cout << "  " << file << " -> " << hash.get<std::string>() << std::endl;
         }
-        std::cout << std::endl;
-    };
+    } else {
+        std::cout << "  None" << std::endl;
+    }
 
-    printArray(watcherJson["modified"], "Modified");
-    printArray(watcherJson["removed"], "Removed");
-    printArray(watcherJson["new"], "New");
-
+    // Print added
     std::cout << "Added (file -> hash):" << std::endl;
     if (watcherJson.contains("added") && watcherJson["added"].is_object()) {
         for (auto &[file, hash] : watcherJson["added"].items()) {
             std::cout << "  " << file << " -> " << hash.get<std::string>() << std::endl;
+        }
+    } else {
+        std::cout << "  None" << std::endl;
+    }
+
+
+
+
+
+    // Print tree
+    std::cout << "Tree (path -> hash):" << std::endl;
+    if (watcherJson.contains("tree") && watcherJson["tree"].is_object()) {
+        for (auto &[path, hash] : watcherJson["tree"].items()) {
+            std::cout << "  " << path << " -> " << hash.get<std::string>() << std::endl;
         }
     } else {
         std::cout << "  None" << std::endl;
