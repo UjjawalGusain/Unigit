@@ -8,6 +8,7 @@ Welcome to **Unigit**, a lightweight version control system inspired by Git, des
   - [Introduction](#introduction)
   - [Features](#features)
   - [Architecture Diagram](#architecture-diagram)
+  - [Demo](#demo)
   - [Dependencies](#dependencies)
   - [Building Instructions](#building-instructions)
   - [Basic Usage Example](#basic-usage-example)
@@ -35,6 +36,8 @@ Unigit comes with a set of core commands to manage your projects effectively:
 
 ![image](https://github.com/user-attachments/assets/8d55e60e-1dcd-44fb-bf5d-a0b7eb15ee4d)
 
+## Demo
+Link for the demo: https://www.linkedin.com/posts/ujjawal-gusain_building-unigit-an-os-enhanced-version-control-activity-7334961240454156288-yswZ
 
 ## Dependencies
 To build and run Unigit, you’ll need the following libraries:
