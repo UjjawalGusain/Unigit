@@ -1,4 +1,8 @@
 # Unigit - A Simple Version Control System
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/b9db9b49-1d93-41cc-8744-12667f797b57" alt="unigit_src_image" width="512" height="512" />
+</div>
+
 
 Welcome to **Unigit**, a lightweight version control system inspired by Git, designed to help you manage and track changes to source code and files in your projects. Whether you're working solo or experimenting with version control, Unigit provides a simple yet powerful way to keep your work organized.
 
